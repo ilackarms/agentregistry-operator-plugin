@@ -6,19 +6,14 @@ allowed-tools: Bash
 
 # AgentRegistry Operator
 
-Use this skill to inspect AgentRegistry resources from a Claude Code harness.
-Stay read-only.
+Use this skill to inspect AgentRegistry resources from a Claude Code harness. Stay read-only.
 
 ## Credential Contract
 
-Use `ARCTL_API_BASE_URL` for the API URL.
-
-The helper uses a bearer token from `ARCTL_BEARER_TOKEN`,
-`AGENTREGISTRY_BEARER_TOKEN`, or `AGENTREGISTRY_TOKEN`. If none is set, it uses
-dev OIDC env: `AGENTREGISTRY_OIDC_ISSUER`,
-`AGENTREGISTRY_OIDC_CLIENT_ID`, `AGENTREGISTRY_USERNAME`,
-`AGENTREGISTRY_PASSWORD`.
-
+Use `ARCTL_API_BASE_URL` for the API URL. The helper uses a bearer token from
+`ARCTL_BEARER_TOKEN`, `AGENTREGISTRY_BEARER_TOKEN`, or `AGENTREGISTRY_TOKEN`.
+If none is set, it uses dev OIDC env: `AGENTREGISTRY_OIDC_ISSUER`,
+`AGENTREGISTRY_OIDC_CLIENT_ID`, `AGENTREGISTRY_USERNAME`, `AGENTREGISTRY_PASSWORD`.
 Never print token values.
 
 ## Standard Inspection Flow
@@ -38,6 +33,5 @@ Use the JSON output to answer:
 
 ## Response Style
 
-Lead with `AGENTREGISTRY_OPERATOR_PLUGIN_OK` for demo smoke prompts. Prefer
-exact names, Ready condition reasons, and resolved commits. Mention the installed
-plugin path from `CLAUDE_PLUGIN_ROOT`.
+Lead with `AGENTREGISTRY_OPERATOR_PLUGIN_OK` for demo smoke prompts. Prefer exact
+names, Ready reasons, and resolved commits. Mention `CLAUDE_PLUGIN_ROOT`.

@@ -37,22 +37,15 @@ def rows(payload, key):
     return payload if isinstance(payload, list) else payload.get("items") or payload.get(key) or []
 
 
-def ready(item):
-    for c in (item.get("status") or {}).get("conditions") or []:
-        if c.get("type") == "Ready":
-            return {"status": c.get("status"), "reason": c.get("reason")}
-
-
 def slim(kind, item):
     m, s, st = item.get("metadata") or {}, item.get("spec") or {}, item.get("status") or {}
     src = st.get("resolvedSource") or ((st.get("details") or {}).get("resolvedSource"))
+    r = next((c for c in st.get("conditions") or [] if c.get("type") == "Ready"), {})
     return {
         "kind": item.get("kind") or kind,
         "name": m.get("name") or item.get("name"),
-        "ready": ready(item),
+        "ready": {"status": r.get("status"), "reason": r.get("reason")} if r else None,
         "harnesses": s.get("compatibleHarnesses") or s.get("harnesses"),
-        "targetRef": s.get("targetRef"),
-        "runtimeRef": s.get("runtimeRef"),
         "harness": s.get("harness"),
         "resolvedSource": src,
     }

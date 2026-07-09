@@ -10,7 +10,6 @@
   "repository": "https://github.com/ilackarms/agentregistry-operator-plugin",
   "license": "Apache-2.0",
   "keywords": ["agentregistry", "agentcore", "harness", "operations", "readiness"],
-  "commands": ["./commands/agentregistry-status.md"],
   "skills": "./skills/",
   "defaultEnabled": true
 }
