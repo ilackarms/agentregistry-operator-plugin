@@ -22,6 +22,14 @@ Use the first available bearer token from:
 3. `AGENTREGISTRY_TOKEN`
 4. `CLAUDE_PLUGIN_OPTION_API_TOKEN`
 
+If no bearer token is present, the bundled helper can obtain one from the dev
+OIDC password flow when these environment variables are set:
+
+1. `AGENTREGISTRY_OIDC_ISSUER` or `OIDC_ISSUER`
+2. `AGENTREGISTRY_OIDC_CLIENT_ID` or `OIDC_CLIENT_ID`
+3. `AGENTREGISTRY_USERNAME` or `ARCTL_USERNAME`
+4. `AGENTREGISTRY_PASSWORD` or `ARCTL_PASSWORD`
+
 Never print token values.
 
 ## Standard Inspection Flow

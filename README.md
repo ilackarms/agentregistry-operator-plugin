@@ -20,7 +20,18 @@ export ARCTL_BEARER_TOKEN=...
 ```
 
 The helper also accepts `AGENTREGISTRY_BEARER_TOKEN`, `AGENTREGISTRY_TOKEN`, or
-Claude plugin user config values. It never prints token values.
+Claude plugin user config values. For dev harness deployments where the bearer
+token is too large for runtime environment variables, it can also use an OIDC
+password flow from:
+
+```sh
+export AGENTREGISTRY_OIDC_ISSUER=https://keycloak.example/realms/dev
+export AGENTREGISTRY_OIDC_CLIENT_ID=are-cli
+export AGENTREGISTRY_USERNAME=...
+export AGENTREGISTRY_PASSWORD=...
+```
+
+It never prints token values.
 
 ## Local Smoke
 

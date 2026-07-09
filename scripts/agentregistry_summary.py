@@ -3,6 +3,7 @@ import json
 import os
 import sys
 import urllib.error
+import urllib.parse
 import urllib.request
 
 
@@ -21,6 +22,10 @@ TOKEN = env_first(
     "AGENTREGISTRY_TOKEN",
     "CLAUDE_PLUGIN_OPTION_API_TOKEN",
 )
+OIDC_ISSUER = env_first("AGENTREGISTRY_OIDC_ISSUER", "OIDC_ISSUER")
+OIDC_CLIENT_ID = env_first("AGENTREGISTRY_OIDC_CLIENT_ID", "OIDC_CLIENT_ID")
+OIDC_USERNAME = env_first("AGENTREGISTRY_USERNAME", "ARCTL_USERNAME")
+OIDC_PASSWORD = env_first("AGENTREGISTRY_PASSWORD", "ARCTL_PASSWORD")
 
 
 def fail(message: str, code: int = 2) -> None:
@@ -31,8 +36,47 @@ def fail(message: str, code: int = 2) -> None:
 if not BASE_URL:
     fail("missing ARCTL_API_BASE_URL")
 
+def token_from_oidc_password_flow() -> str:
+    if not (OIDC_ISSUER and OIDC_CLIENT_ID and OIDC_USERNAME and OIDC_PASSWORD):
+        return ""
+
+    token_url = f"{OIDC_ISSUER.rstrip('/')}/protocol/openid-connect/token"
+    body = urllib.parse.urlencode(
+        {
+            "grant_type": "password",
+            "client_id": OIDC_CLIENT_ID,
+            "username": OIDC_USERNAME,
+            "password": OIDC_PASSWORD,
+        }
+    ).encode("utf-8")
+    request = urllib.request.Request(
+        token_url,
+        data=body,
+        headers={
+            "Content-Type": "application/x-www-form-urlencoded",
+            "Accept": "application/json",
+        },
+        method="POST",
+    )
+    try:
+        with urllib.request.urlopen(request, timeout=30) as response:
+            payload = json.loads(response.read().decode("utf-8"))
+    except urllib.error.HTTPError as exc:
+        body = exc.read().decode("utf-8", errors="replace")
+        fail(f"OIDC token endpoint returned HTTP {exc.code}: {body}", 1)
+    except urllib.error.URLError as exc:
+        fail(f"OIDC token request failed: {exc.reason}", 1)
+    token = str(payload.get("access_token") or "").strip()
+    if not token:
+        fail("OIDC token response did not include an access_token", 1)
+    return token
+
+
 if not TOKEN:
-    fail("missing AgentRegistry bearer token")
+    TOKEN = token_from_oidc_password_flow()
+
+if not TOKEN:
+    fail("missing AgentRegistry bearer token or OIDC password-flow credentials")
 
 
 def api_get(path: str):
