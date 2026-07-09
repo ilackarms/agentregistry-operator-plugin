@@ -2,29 +2,18 @@
 import json, os, urllib.parse, urllib.request
 
 
-def e(*ks):
-    for k in ks:
-        v = os.environ.get(k, "").strip()
-        if v:
-            return v
-    return ""
+def env(*ks):
+    return next((v.strip() for k in ks if (v := os.environ.get(k, "")).strip()), "")
 
 
-base = e("ARCTL_API_BASE_URL").rstrip("/")
-tok = e("ARCTL_BEARER_TOKEN", "AGENTREGISTRY_BEARER_TOKEN", "AGENTREGISTRY_TOKEN")
+base = env("ARCTL_API_BASE_URL").rstrip("/")
+tok = env("ARCTL_BEARER_TOKEN", "AGENTREGISTRY_BEARER_TOKEN", "AGENTREGISTRY_TOKEN")
 if not base:
     raise SystemExit("missing ARCTL_API_BASE_URL")
 if not tok:
-    issuer = e("AGENTREGISTRY_OIDC_ISSUER", "OIDC_ISSUER").rstrip("/")
-    body = urllib.parse.urlencode({
-        "grant_type": "password",
-        "client_id": e("AGENTREGISTRY_OIDC_CLIENT_ID", "OIDC_CLIENT_ID"),
-        "username": e("AGENTREGISTRY_USERNAME", "ARCTL_USERNAME"),
-        "password": e("AGENTREGISTRY_PASSWORD", "ARCTL_PASSWORD"),
-    }).encode()
-    req = urllib.request.Request(f"{issuer}/protocol/openid-connect/token", data=body)
-    req.add_header("Content-Type", "application/x-www-form-urlencoded")
-    tok = json.loads(urllib.request.urlopen(req, timeout=30).read().decode())["access_token"]
+    body = urllib.parse.urlencode({"grant_type": "password", "client_id": env("AGENTREGISTRY_OIDC_CLIENT_ID", "OIDC_CLIENT_ID"), "username": env("AGENTREGISTRY_USERNAME", "ARCTL_USERNAME"), "password": env("AGENTREGISTRY_PASSWORD", "ARCTL_PASSWORD")}).encode()
+    req = urllib.request.Request(f'{env("AGENTREGISTRY_OIDC_ISSUER","OIDC_ISSUER").rstrip("/")}/protocol/openid-connect/token', data=body, headers={"Content-Type": "application/x-www-form-urlencoded"})
+    tok = json.loads(urllib.request.urlopen(req, timeout=30).read())["access_token"]
 
 
 def get(path):
@@ -39,7 +28,6 @@ def rows(payload, key):
 
 def slim(kind, item):
     m, s, st = item.get("metadata") or {}, item.get("spec") or {}, item.get("status") or {}
-    src = st.get("resolvedSource") or ((st.get("details") or {}).get("resolvedSource"))
     r = next((c for c in st.get("conditions") or [] if c.get("type") == "Ready"), {})
     return {
         "kind": item.get("kind") or kind,
@@ -47,7 +35,7 @@ def slim(kind, item):
         "ready": {"status": r.get("status"), "reason": r.get("reason")} if r else None,
         "harnesses": s.get("compatibleHarnesses") or s.get("harnesses"),
         "harness": s.get("harness"),
-        "resolvedSource": src,
+        "resolvedSource": st.get("resolvedSource") or ((st.get("details") or {}).get("resolvedSource")),
     }
 
 
@@ -61,9 +49,8 @@ spec = {
 data = {k: [slim(kind, x) for x in rows(get(path), k)] for k, (kind, path) in spec.items()}
 print(json.dumps({
     "marker": "AGENTREGISTRY_OPERATOR_PLUGIN_OK",
-    "apiBaseUrl": base,
     "pluginRoot": os.environ.get("CLAUDE_PLUGIN_ROOT", ""),
     "counts": {k: len(v) for k, v in data.items()},
     "harnessCompatibleAgents": [a for a in data["agents"] if a.get("harnesses")],
     **data,
-}, separators=(",", ":"), sort_keys=True))
+}, separators=(",", ":")))
