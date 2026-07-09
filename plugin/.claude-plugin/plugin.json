@@ -12,20 +12,5 @@
   "keywords": ["agentregistry", "agentcore", "harness", "operations", "readiness"],
   "commands": ["./commands/agentregistry-status.md"],
   "skills": "./skills/",
-  "defaultEnabled": true,
-  "userConfig": {
-    "api_base_url": {
-      "type": "string",
-      "title": "AgentRegistry API URL",
-      "description": "Base URL for the AgentRegistry API, for example https://ilackarms.are.soloio.dev",
-      "required": false
-    },
-    "api_token": {
-      "type": "string",
-      "title": "AgentRegistry API token",
-      "description": "Read-only bearer token for AgentRegistry API calls.",
-      "sensitive": true,
-      "required": false
-    }
-  }
+  "defaultEnabled": true
 }

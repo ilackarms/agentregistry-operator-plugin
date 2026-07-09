@@ -36,6 +36,7 @@ It never prints token values.
 ## Local Smoke
 
 ```sh
+cd plugin
 CLAUDE_PLUGIN_ROOT="$PWD" ./scripts/agentregistry-summary.sh
 ```
 
